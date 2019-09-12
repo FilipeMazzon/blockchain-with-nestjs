@@ -16,6 +16,5 @@ export class NetworkController {
   @Post('/transaction')
   async createTransaction(@Body('newTransaction') transaction: Transaction) {
     return this.networkService.createTransaction(transaction);
-
   }
 }
