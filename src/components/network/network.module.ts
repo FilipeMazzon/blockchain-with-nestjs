@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { NetworkController } from './network.controller';
 import { NetworkService } from './network.service';
-import { BlockchainService } from '../blockchain/blockchain.service';
+import { Blockchain } from '../blockchain/blockchain.service';
 
 @Module({
   controllers: [NetworkController],
   providers: [
     NetworkService,
-    BlockchainService,
+    Blockchain,
   ],
 })
 export class NetworkModule {
