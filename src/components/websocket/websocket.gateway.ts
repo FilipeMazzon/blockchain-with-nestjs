@@ -16,7 +16,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   connectedNodes: string[] = peers;
 
   async handleConnection(urlNode) {
-    this.connectedNodes = [...this.connectedNodes, String(user._id)];
+    this.connectedNodes = [...this.connectedNodes, urlNode];
     this.server.emit('nodes', this.connectedNodes);
   }
 
@@ -49,11 +49,11 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   connectToPeers() {
-    peers.forEach(peer => {
-      const socket = new Websocket(peer);
+    /*  peers.forEach(peer => {
+        //const socket = new (peer);
 
-      socket.on('open', () => this.server(socket));
-    });
+        socket.on('open', () => this.server(socket));
+      });*/
   }
 
   @SubscribeMessage('join')

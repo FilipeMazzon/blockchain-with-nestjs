@@ -1,12 +1,9 @@
 import { Transaction } from './index';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
-export class TransactionPool {
-  private transactions: Transaction[];
-
-  constructor() {
-    this.transactions = [];
-  }
+@Injectable()
+export class TransactionPoolService {
+  private transactions: Transaction[] = [];
 
   async updateOrAddTransaction(transaction) {
     const transactionWithId = this.transactions.find(t => t.getId() === transaction.id);
@@ -22,7 +19,8 @@ export class TransactionPool {
     return this.transactions.find(t => t.getInput().address === address);
   }
 
-  validTransactions() {
+  async validTransactions() {
+    Logger.log('validTransaction', 'validTransaction');
     return this.transactions.filter(transaction => {
       const outputTotal = transaction.getOutputs().reduce((total, output) => {
         return total + output.amount;

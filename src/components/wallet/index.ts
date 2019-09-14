@@ -1,19 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { ChainUtil } from '../../util/chain.util';
-import { Transaction } from '../Transaction';
 import { INITIAL_BALANCE } from '../../config';
-import { Blockchain } from '../blockchain/blockchain.service';
-import { TransactionPool } from '../Transaction/transactionPool';
 
-@Injectable()
 export class Wallet {
   private balance: number;
   private keyPair;
   private publicKey;
   private address: string;
 
-  constructor(private readonly blockchain: Blockchain,
-              private readonly transactionPool: TransactionPool) {
+  constructor() {
     this.balance = INITIAL_BALANCE;
     this.keyPair = ChainUtil.genKeyPair();
     this.publicKey = this.keyPair.getPublic().encode('hex');
@@ -25,79 +19,35 @@ export class Wallet {
       balance  : ${this.balance}`;
   }
 
-  sign(dataHash) {
-    return this.keyPair.sign(dataHash);
+  getBalance() {
+    return this.balance;
   }
 
-  async createTransaction(recipient, amount) {
-    this.balance = await this.calculateBalance();
-
-    if (amount > this.balance) {
-      Logger.log(`Amount: ${amount} exceceds current balance: ${this.balance}`);
-      return;
-    }
-
-    let transaction = this.transactionPool.existingTransaction(this.publicKey);
-
-    if (transaction) {
-      transaction.update(this, recipient, amount);
-    } else {
-      transaction = Transaction.newTransaction(this, recipient, amount);
-      await this.transactionPool.updateOrAddTransaction(transaction);
-    }
-
-    return transaction;
+  setBalance(balance: number): void {
+    this.balance = balance;
   }
 
-  async calculateBalance() {
-    let balance = this.balance;
-    const transactions = [];
-    this.blockchain.getChain().forEach(block => block.getData().forEach(transaction => {
-      transactions.push(transaction);
-    }));
-
-    const walletInputTs = transactions
-      .filter(transaction => transaction.input.address === this.publicKey);
-
-    let startTime = 0;
-
-    if (walletInputTs.length > 0) {
-      const recentInputT = walletInputTs.reduce(
-        (prev, current) => prev.input.timestamp > current.input.timestamp ? prev : current,
-      );
-
-      balance = recentInputT.outputs.find(output => output.address === this.publicKey).amount;
-      startTime = recentInputT.input.timestamp;
-    }
-
-    transactions.forEach(transaction => {
-      if (transaction.input.timestamp > startTime) {
-        transaction.getOutputs().find(output => {
-          if (output.address === this.publicKey) {
-            balance += output.amount;
-          }
-        });
-      }
-    });
-
-    return balance;
+  getKeyPair() {
+    return this.keyPair;
   }
 
-  static blockchainWallet() {
-    const blockchainWallet = new this();
-    blockchainWallet.address = 'blockchain-wallet';
-    return blockchainWallet;
+  setKeyPair(keyPair): void {
+    this.keyPair = keyPair;
   }
 
   getPublicKey() {
     return this.publicKey;
   }
 
+  setPublicKey(publicKey): void {
+    this.publicKey = publicKey;
+  }
+
   getAddress() {
     return this.address;
   }
 
-  getWallet() {
-    return this.balance;
+  setAddress(address: string): void {
+    this.address = address;
   }
 }

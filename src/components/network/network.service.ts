@@ -1,22 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Blockchain } from '../blockchain/blockchain.service';
-import { TransactionPool } from '../Transaction/transactionPool';
-import { Wallet } from '../wallet';
-import { Miner } from '../Miner';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BlockchainService } from '../blockchain/blockchain.service';
+import { TransactionPoolService } from '../Transaction/transactionPoolService';
+import { WalletService } from '../wallet/wallet.service';
+import { MinerService } from '../miner/Miner.service';
 import { Block } from '../block';
 import { Transaction } from '../Transaction';
+import { TransactionCreateDto } from '../Transaction/dto';
 
 @Injectable()
 export class NetworkService {
   constructor(
-    private readonly blockchain: Blockchain,
-    private readonly wallet: Wallet,
-    private readonly tp: TransactionPool,
-    private readonly miner: Miner) {
+    private readonly blockchainService: BlockchainService,
+    private readonly walletService: WalletService,
+    private readonly tp: TransactionPoolService,
+    private readonly miner: MinerService) {
   }
 
   async getBlocks(): Promise<Block[]> {
-    return this.blockchain.getChain();
+    return this.blockchainService.getChain();
   }
 
   async getTransaction(): Promise<Transaction[]> {
@@ -24,11 +25,23 @@ export class NetworkService {
   }
 
   async getPublicKey() {
-    return this.wallet.getPublicKey();
+    return this.walletService.getPublicKey();
+  }
+
+  async createTransaction(transaction: TransactionCreateDto): Promise<Transaction[]> {
+    const { recipient, amount } = transaction;
+    try {
+      const newTransaction = this.walletService.createTransaction(recipient, amount);
+      // p2pServer.broadcastTransaction(newTransaction);
+      return this.getTransaction();
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
+
   }
 
   async mineTransactions(): Promise<Block[]> {
-    const block = this.miner.mine();
+    const block = await this.miner.mine();
     Logger.log(`New block added: ${block.toString()}`, `networkService.`);
     return this.getBlocks();
   }

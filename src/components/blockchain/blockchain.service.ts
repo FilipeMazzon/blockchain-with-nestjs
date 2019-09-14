@@ -1,17 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as uuid from 'uuid/v4';
 import { Block } from '../block';
-import { Transaction } from '../Transaction';
 
 const currentNodeUrl = process.env.CURRENT_NODE_URL || 'http://localhost:3000';
 
 @Injectable()
-export class Blockchain {
+export class BlockchainService {
   chain: Block[] = [Block.genesis()];
-
-  private pendingTransactions: Transaction[] = [];
-  private currentNodeUrl: string = currentNodeUrl;
-  private networkNodes: string[] = [];
 
   async addBlock(data) {
     const block = Block.mineBlock(this.chain[this.chain.length - 1], data);
