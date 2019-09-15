@@ -1,13 +1,11 @@
-import { WalletService } from '../wallet/wallet.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { TransactionPoolService } from '../Transaction/transactionPool.service';
-import { TransactionService } from '../Transaction/transaction.service';
+import { Transaction } from '../Transaction';
 import { forwardRef, Inject, Logger, NotFoundException } from '@nestjs/common';
 
 export class MinerService {
   constructor(
     private readonly blockchainService: BlockchainService,
-    private readonly walletService: WalletService,
     @Inject(forwardRef(() => TransactionPoolService))
     private readonly transactionPoolService: TransactionPoolService,
     // private p2pServer;
@@ -16,15 +14,12 @@ export class MinerService {
 
   async mine() {
     Logger.log('getting transactions', 'MinerService.mine', true);
-    const validTransactions = await this.transactionPoolService.validTransactions();
+    const validTransactions: Transaction[] = this.transactionPoolService.getTransactions();
     Logger.log(validTransactions, 'MinerService.mine', true);
     if (!validTransactions.length) {
       throw new NotFoundException('do not have any transaction to mine!');
     } else {
       Logger.log('try to mine transactions', 'MinerService.mine', true);
-      validTransactions.push(
-        TransactionService.rewardTransaction(this.walletService.getWallet(), WalletService.blockchainWallet()),
-      );
       const block = await this.blockchainService.addBlock(validTransactions);
       // this.p2pServer.syncChains();
       await this.transactionPoolService.clear();

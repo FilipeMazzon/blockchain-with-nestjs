@@ -1,17 +1,16 @@
 import { BadRequestException, forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { TransactionPoolService } from '../Transaction/transactionPool.service';
-import { WalletService } from '../wallet/wallet.service';
 import { MinerService } from '../miner/Miner.service';
 import { Block } from '../../interfaces';
-import { TransactionService } from '../Transaction/transaction.service';
+import { Transaction } from '../Transaction';
 import { TransactionCreateDto } from '../Transaction/dto';
+import { ChainUtil } from '../../util/chain.util';
 
 @Injectable()
 export class NetworkService {
   constructor(
     private readonly blockchainService: BlockchainService,
-    private readonly walletService: WalletService,
     @Inject(forwardRef(() => TransactionPoolService))
     private readonly transactionPoolService: TransactionPoolService,
     private readonly miner: MinerService) {
@@ -21,18 +20,15 @@ export class NetworkService {
     return this.blockchainService.getChain();
   }
 
-  async getTransactions(): Promise<TransactionService[]> {
+  async getTransactions(): Promise<Transaction[]> {
     return this.transactionPoolService.getTransactions();
   }
 
-  async getPublicKey() {
-    return this.walletService.getPublicKey();
-  }
-
-  async createTransaction(transaction: TransactionCreateDto): Promise<TransactionService[]> {
-    const { recipient, amount } = transaction;
+  async createTransaction(transaction: TransactionCreateDto): Promise<Transaction[]> {
     try {
-      const newTransaction = this.walletService.createTransaction(recipient, amount);
+      const { identification, ...data } = transaction;
+      const newTransaction: Transaction = new Transaction(data, identification);
+      await this.transactionPoolService.addTransaction(newTransaction);
       // p2pServer.broadcastTransaction(newTransaction);
       return this.getTransactions();
     } catch (e) {

@@ -11,7 +11,6 @@ export class BlockchainService {
   async addBlock(data) {
     const block = await BlockUtil.mineBlock(this.chain[this.chain.length - 1], data);
     this.chain.push(block);
-
     return block;
   }
 
