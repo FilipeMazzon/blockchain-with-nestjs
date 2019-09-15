@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { NetworkService } from './network.service';
-import { Transaction } from '../Transaction';
+import { TransactionService } from '../Transaction/transaction.service';
 import { TransactionCreateDto } from '../Transaction/dto';
 
 @Controller('network')
@@ -16,12 +16,12 @@ export class NetworkController {
   }
 
   @Get('/transactions')
-  async getTransactions(): Promise<Transaction[]> {
-    return this.networkService.getTransaction();
+  async getTransactions(): Promise<TransactionService[]> {
+    return this.networkService.getTransactions();
   }
 
-  @Post('/transaction')
-  async createTransaction(@Body() transaction: TransactionCreateDto): Promise<Transaction[]> {
+  @Post('/transact')
+  async createTransaction(@Body() transaction: TransactionCreateDto): Promise<TransactionService[]> {
     return this.networkService.createTransaction(transaction);
   }
 

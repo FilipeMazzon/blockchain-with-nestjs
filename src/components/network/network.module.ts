@@ -1,20 +1,23 @@
 import { Module } from '@nestjs/common';
 import { NetworkController } from './network.controller';
 import { NetworkService } from './network.service';
-import { BlockchainService } from '../blockchain/blockchain.service';
-import { MinerService } from '../miner/Miner.service';
-import { TransactionPoolService } from '../Transaction/transactionPoolService';
-import { WalletService } from '../wallet/wallet.service';
+import { BlockchainModule } from '../blockchain/blockchain.module';
+import { MinerModule } from '../miner/Miner.module';
+import { TransactionModule } from '../Transaction/transaction.module';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
+  imports: [
+    MinerModule,
+    TransactionModule,
+    BlockchainModule,
+    WalletModule,
+  ],
   controllers: [NetworkController],
   providers: [
     NetworkService,
-    BlockchainService,
-    WalletService,
-    MinerService,
-    TransactionPoolService,
   ],
+  exports: [NetworkService],
 })
 export class NetworkModule {
 }

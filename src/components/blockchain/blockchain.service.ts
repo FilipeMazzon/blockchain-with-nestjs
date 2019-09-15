@@ -1,14 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Block } from '../block';
+import { Block } from '../../interfaces';
+import { BlockUtil } from '../../util/block.util';
 
 const currentNodeUrl = process.env.CURRENT_NODE_URL || 'http://localhost:3000';
 
 @Injectable()
 export class BlockchainService {
-  chain: Block[] = [Block.genesis()];
+  chain: Block[] = [BlockUtil.genesis()];
 
   async addBlock(data) {
-    const block = Block.mineBlock(this.chain[this.chain.length - 1], data);
+    const block = await BlockUtil.mineBlock(this.chain[this.chain.length - 1], data);
     this.chain.push(block);
 
     return block;
@@ -19,7 +20,7 @@ export class BlockchainService {
   }
 
   async isValidChain(chain) {
-    if (JSON.stringify(chain[0]) !== JSON.stringify(Block.genesis())) {
+    if (JSON.stringify(chain[0]) !== JSON.stringify(BlockUtil.genesis())) {
       return false;
     }
 
@@ -28,7 +29,7 @@ export class BlockchainService {
       const lastBlock = chain[i - 1];
 
       if (block.lastHash !== lastBlock.hash ||
-        block.hash !== Block.blockHash(block)) {
+        block.hash !== BlockUtil.blockHash(block)) {
         return false;
       }
     }

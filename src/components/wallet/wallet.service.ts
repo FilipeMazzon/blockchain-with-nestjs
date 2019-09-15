@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Transaction } from '../Transaction';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { TransactionService } from '../Transaction/transaction.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
-import { TransactionPoolService } from '../Transaction/transactionPoolService';
+import { TransactionPoolService } from '../Transaction/transactionPool.service';
 import { Wallet } from './index';
 
 @Injectable()
@@ -10,6 +10,7 @@ export class WalletService {
 
   constructor(
     private readonly blockchainService: BlockchainService,
+    @Inject(forwardRef(() => TransactionPoolService))
     private readonly transactionPool: TransactionPoolService,
   ) {
 
@@ -32,7 +33,7 @@ export class WalletService {
     if (transaction) {
       transaction.update(this, recipient, amount);
     } else {
-      transaction = Transaction.newTransaction(this, recipient, amount);
+      transaction = TransactionService.newTransaction(this, recipient, amount);
       await this.transactionPool.updateOrAddTransaction(transaction);
     }
 
@@ -42,7 +43,7 @@ export class WalletService {
   async calculateBalance() {
     let balance = this.wallet.getBalance();
     const transactions = [];
-    this.blockchainService.getChain().forEach(block => block.getData().forEach(transaction => {
+    this.blockchainService.getChain().forEach(block => block.data.forEach(transaction => {
       transactions.push(transaction);
     }));
 

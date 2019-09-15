@@ -1,16 +1,15 @@
 import { ChainUtil } from '../../util/chain.util';
 import { MINING_REWARD } from '../../config';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
-export class Transaction {
+@Injectable()
+export class TransactionService {
   private readonly id;
-  private readonly input;
-  private readonly outputs: any[];
+  private readonly data: any;
 
   constructor() {
     this.id = ChainUtil.id();
-    this.input = null;
-    this.outputs = [];
+    this.data = null;
   }
 
   update(senderWallet, recipient, amount) {
@@ -23,7 +22,7 @@ export class Transaction {
 
     senderOutput.amount = senderOutput.amount - amount;
     this.outputs.push({ amount, address: recipient });
-    Transaction.signTransaction(this, senderWallet);
+    TransactionService.signTransaction(this, senderWallet);
 
     return this;
   }
@@ -31,7 +30,7 @@ export class Transaction {
   static transactionWithOutputs(senderWallet, outputs) {
     const transaction = new this();
     transaction.outputs.push(...outputs);
-    Transaction.signTransaction(transaction, senderWallet);
+    TransactionService.signTransaction(transaction, senderWallet);
     return transaction;
   }
 
@@ -41,14 +40,14 @@ export class Transaction {
       return;
     }
 
-    return Transaction.transactionWithOutputs(senderWallet, [
+    return TransactionService.transactionWithOutputs(senderWallet, [
       { amount: senderWallet.balance - amount, address: senderWallet.publicKey },
       { amount, address: recipient },
     ]);
   }
 
   static rewardTransaction(minerWallet, blockchainWallet) {
-    return Transaction.transactionWithOutputs(blockchainWallet, [{
+    return TransactionService.transactionWithOutputs(blockchainWallet, [{
       amount: MINING_REWARD, address: minerWallet.publicKey,
     }]);
   }

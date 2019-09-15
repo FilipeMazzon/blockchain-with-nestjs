@@ -1,9 +1,9 @@
-import { Transaction } from './index';
+import { TransactionService } from './transaction.service';
 import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class TransactionPoolService {
-  private transactions: Transaction[] = [];
+  private transactions: TransactionService[] = [];
 
   async updateOrAddTransaction(transaction) {
     const transactionWithId = this.transactions.find(t => t.getId() === transaction.id);
@@ -20,18 +20,19 @@ export class TransactionPoolService {
   }
 
   async validTransactions() {
-    Logger.log('validTransaction', 'validTransaction');
     return this.transactions.filter(transaction => {
+      Logger.log(transaction.getOutputs());
+      Logger.log(transaction.getInput());
       const outputTotal = transaction.getOutputs().reduce((total, output) => {
         return total + output.amount;
       }, 0);
-
+      Logger.log(`outputTotal:${outputTotal}`);
       if (transaction.getInput().amount !== outputTotal) {
-        Logger.log(`Invalid transaction from ${transaction.getInput().address}.`);
+        Logger.error(`Invalid transaction from ${transaction.getInput().address}.`);
         return;
       }
 
-      if (!Transaction.verifyTransaction(transaction)) {
+      if (!TransactionService.verifyTransaction(transaction)) {
         Logger.log(`Invalid signature from ${transaction.getInput().address}.`);
         return;
       }
@@ -44,7 +45,10 @@ export class TransactionPoolService {
     this.transactions = [];
   }
 
-  getTransaction() {
+  getTransactions() {
+    Logger.log(this.transactions, 'transactionPoolService.getTransactions', true);
     return this.transactions;
   }
 }
+
+export const transactionPoolService = new TransactionPoolService();
