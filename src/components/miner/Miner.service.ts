@@ -8,7 +8,6 @@ export class MinerService {
     private readonly blockchainService: BlockchainService,
     @Inject(forwardRef(() => TransactionPoolService))
     private readonly transactionPoolService: TransactionPoolService,
-    // private p2pServer;
   ) {
   }
 
@@ -21,10 +20,7 @@ export class MinerService {
     } else {
       Logger.log('try to mine transactions', 'MinerService.mine', true);
       const block = await this.blockchainService.addBlock(validTransactions);
-      // this.p2pServer.syncChains();
       await this.transactionPoolService.clear();
-      // this.p2pServer.broadcastClearTransactions();
-
       return block;
     }
 

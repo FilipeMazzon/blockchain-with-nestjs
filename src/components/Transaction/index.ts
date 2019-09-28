@@ -6,11 +6,11 @@ export class Transaction {
   private readonly data: any;
   private readonly timestamp: Date;
 
-  constructor(data = null, identification = null) {
-    this.id = ChainUtil.id();
+  constructor(data = null, identification = null, timestamp = new Date(), id = ChainUtil.id()) {
+    this.id = id;
     this.data = data;
     this.identification = identification;
-    this.timestamp = new Date();
+    this.timestamp = timestamp;
   }
 
   static newTransaction(data, identification) {

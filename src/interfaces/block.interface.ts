@@ -5,5 +5,4 @@ export interface Block {
   hash: string;
   data: any;
   nonce: number;
-  difficulty: number;
 }
