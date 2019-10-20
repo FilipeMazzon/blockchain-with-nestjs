@@ -4,9 +4,9 @@ export class Transaction {
   private readonly id;
   private readonly identification;
   private readonly data: any;
-  private readonly timestamp: Date;
+  private readonly timestamp: number;
 
-  constructor(data = null, identification = null, timestamp = new Date(), id = ChainUtil.id()) {
+  constructor(data = null, identification = null, timestamp = Date.now(), id = ChainUtil.id()) {
     this.id = id;
     this.data = data;
     this.identification = identification;

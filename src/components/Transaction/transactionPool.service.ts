@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Transaction } from './index';
 
 @Injectable()
 export class TransactionPoolService {
   private transactions: Transaction[] = [];
 
-  async addTransaction(transaction) {
+  async addTransaction(transaction: Transaction) {
     return this.transactions.push(transaction);
   }
 

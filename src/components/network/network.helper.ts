@@ -23,7 +23,7 @@ export class NetworkHelper {
     return this.currentNodeUrl;
   }
 
-  async joinNetwork(ip: string) {
+  async joinNetwork(ip: string, blockchain: Block[]) {
     if (this.nodes.includes(ip)) {
       return new BadRequestException('already have this node in this blockchain');
     }
@@ -32,20 +32,27 @@ export class NetworkHelper {
     } else {
       // this need be before the connect with other node because will enter on loop
       this.nodes.push(ip);
-      await this.connectWithOtherNodes(ip, this.currentNodeUrl);
       if (this.nodes.length === 1) {
-        return;
+        await this.consensus(blockchain);
       }
-      this.consensus();
+      await this.connectWithOtherNodes(ip, this.currentNodeUrl, this.blockchainService.getChain());
+      if (this.nodes.length === 1) {
+        return `ip:${ip} was inserted`;
+      }
+      await this.consensus(blockchain);
+
       for (const node of this.nodes) {
-        await this.connectWithOtherNodes(node, ip);
+        await this.connectWithOtherNodes(node, ip, null);
       }
       return `ip:${ip} was inserted`;
     }
   }
 
-  async consensus() {
+  async consensus(blockchain: Block[]) {
     const blockchains = await this.getBlockchain();
+    if (blockchain !== blockchain) {
+      Logger.log(null);
+    }
     Logger.log(blockchains);
   }
 
@@ -62,29 +69,39 @@ export class NetworkHelper {
 
   async broadCastTransactions(transaction: Transaction) {
     const requests = this.nodes.map((node) => {
-      return this.httpService.post(node + '/network/add-transaction', { transaction }).toPromise();
+      return this.httpService.post(node + '/network/add-transaction', { ...transaction }).toPromise();
     });
-    Promise.all(requests).then((result) => {
-      Logger.log(result);
-    }).catch();
+    Promise.all(requests).then(() => {
+      Logger.log('', 'networkService.broadcastTransaction', true);
+    }).catch(err => {
+      Logger.error(err.message, err, 'networkHelper.broadCastValidateBlock', true);
+    });
   }
 
   async broadCastClearTransaction() {
-    for (const node of this.nodes) {
-      this.httpService.delete(`${node}/network/transactions`);
-    }
+    const requests = this.nodes.map((node) => {
+      return this.httpService.delete(`${node}/network/transactions`).toPromise();
+    });
+    Promise.all(requests).then(() => {
+      Logger.log('', 'networkService.broadcastTransaction', true);
+    }).catch(err => {
+      Logger.error(err.message, err, 'networkHelper.broadCastValidateBlock', true);
+    });
   }
 
   async broadCastValidateBlock(block: Block) {
-    const requests = [];
-    for (const node of this.nodes) {
-      requests.push(this.httpService.post(`${node}/network/validate-new-block`, { block }));
-    }
-    Promise.all(requests).then();
+    const requests = this.nodes.map((node) => {
+      return this.httpService.post(`${node}/network/validate-new-block`, { block }).toPromise();
+    });
+    Promise.all(requests).then(() => {
+      Logger.log('', 'networkService.broadCastValidateBlock', true);
+    }).catch(err => {
+      Logger.error(err.message, err, 'networkHelper.broadCastValidateBlock', true);
+    });
   }
 
-  async connectWithOtherNodes(node: string, ip: string): Promise<any> {
+  async connectWithOtherNodes(node: string, ip: string, blockchain): Promise<any> {
     Logger.log(`envio para: ${node} conectar com o :${ip}`);
-    return this.httpService.post(node + '/network/join', { ip }).toPromise().then(res => res.data);
+    return this.httpService.post(node + '/network/join', { ip, blockchain }).toPromise().then(res => res.data);
   }
 }

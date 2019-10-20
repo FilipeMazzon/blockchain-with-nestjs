@@ -27,7 +27,7 @@ export class BlockUtil {
     let hash;
     let timestamp;
     let nonce = 0;
-    const { lastHash } = lastBlock;
+    const { hash: lastHash } = lastBlock;
     do {
       nonce++;
       timestamp = Date.now();

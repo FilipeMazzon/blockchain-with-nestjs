@@ -62,7 +62,15 @@ export class NetworkService {
   }
 
   async validateNewBlock(block: Block): Promise<boolean> {
-    return this.blockchainService.validBlock(block);
+    try {
+      Logger.log(`receive block:${JSON.stringify(block, null, 2)}`, 'networkService.validateNewBlock', true);
+      await this.blockchainService.validBlock(block);
+      Logger.log(`is valid block`, `networkService.validateNewBlock`, true);
+      await this.blockchainService.addBlock(block);
+      return true;
+    } catch (e) {
+      throw new BadRequestException('block isn`t valid');
+    }
   }
 
   async clearTransaction(): Promise<Transaction[]> {

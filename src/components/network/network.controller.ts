@@ -41,7 +41,7 @@ export class NetworkController {
   }
 
   @Post('/validate-new-block')
-  async validateNewBlock(@Body() block: Block): Promise<boolean> {
+  async validateNewBlock(@Body('block') block: Block): Promise<boolean> {
     return this.networkService.validateNewBlock(block);
   }
 
@@ -51,8 +51,8 @@ export class NetworkController {
   }
 
   @Post('/join')
-  async joinNetwork(@Body('ip') ip: string) {
-    return this.networkHelper.joinNetwork(ip);
+  async joinNetwork(@Body('ip') ip: string, @Body('blockchain') blockchain: Block[]) {
+    return this.networkHelper.joinNetwork(ip, blockchain);
   }
 
   @Get('/list')

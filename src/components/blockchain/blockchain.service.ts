@@ -7,10 +7,14 @@ import { DIFFICULTY } from '../../config';
 export class BlockchainService {
   private chain: Block[] = [BlockUtil.genesis()];
 
-  async addBlock(data): Promise<Block> {
+  async generateBlock(data): Promise<Block> {
     const block = await BlockUtil.mineBlock(this.chain[this.chain.length - 1], data);
-    this.chain.push(block);
+    await this.addBlock(block);
     return block;
+  }
+
+  async addBlock(block: Block) {
+    return this.chain.push(block);
   }
 
   async validBlock(block: Block): Promise<boolean> {
@@ -18,10 +22,10 @@ export class BlockchainService {
     const { data, nonce, timestamp } = block;
     const hash = await BlockUtil.hash(timestamp, lastHash, data, nonce);
     if (hash !== block.hash) {
-      return false;
+      throw new Error('block not valid hash');
     }
     if (hash.substring(0, DIFFICULTY) !== '0'.repeat(DIFFICULTY)) {
-      return false;
+      throw new Error('block not valid dificulty');
     }
     // @todo verificar se todas as transacoes estao no bloco de transacoes.
     {
@@ -47,7 +51,6 @@ export class BlockchainService {
         return false;
       }
     }
-
     return true;
   }
 

@@ -14,12 +14,11 @@ export class MinerService {
   async mine() {
     Logger.log('getting transactions', 'MinerService.mine', true);
     const validTransactions: Transaction[] = this.transactionPoolService.getTransactions();
-    Logger.log(validTransactions, 'MinerService.mine', true);
     if (!validTransactions.length) {
       throw new NotFoundException('do not have any transaction to mine!');
     } else {
       Logger.log('try to mine transactions', 'MinerService.mine', true);
-      const block = await this.blockchainService.addBlock(validTransactions);
+      const block = await this.blockchainService.generateBlock(validTransactions);
       await this.transactionPoolService.clear();
       return block;
     }
