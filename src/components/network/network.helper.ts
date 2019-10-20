@@ -49,11 +49,12 @@ export class NetworkHelper {
   }
 
   async consensus(blockchain: Block[]) {
-    const blockchains = await this.getBlockchain();
-    if (blockchain !== blockchain) {
-      Logger.log(null);
+    const MyBlockchain = await this.getBlockchain();
+    if (blockchain.length > MyBlockchain.length) {
+      if (await this.blockchainService.isValidChain(blockchain)) {
+        this.blockchainService.setLargestChain(blockchain);
+      }
     }
-    Logger.log(blockchains);
   }
 
   async getBlockchain(): Promise<Array<AxiosResponse<Block[]>>> {

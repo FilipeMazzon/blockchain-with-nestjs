@@ -37,6 +37,10 @@ export class BlockchainService {
     return this.chain[this.chain.length - 1];
   }
 
+  setLargestChain(blockchain: Block[]): Block[] {
+    return this.chain = blockchain;
+  }
+
   async isValidChain(chain): Promise<boolean> {
     if (JSON.stringify(chain[0]) !== JSON.stringify(BlockUtil.genesis())) {
       return false;
