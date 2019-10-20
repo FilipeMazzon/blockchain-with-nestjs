@@ -1,8 +1,8 @@
 import { BadRequestException, HttpService, Injectable, Logger } from '@nestjs/common';
 import { BlockchainService } from '../blockchain/blockchain.service';
-import { Block } from '../../interfaces';
+import { Block, Blockchain } from '../../interfaces';
 import { Transaction } from '../Transaction';
-import { AxiosResponse } from 'axios';
+import { TransactionPoolService } from '../Transaction/transactionPool.service';
 
 @Injectable()
 export class NetworkHelper {
@@ -11,6 +11,7 @@ export class NetworkHelper {
 
   constructor(
     private readonly blockchainService: BlockchainService,
+    private readonly transactionPoolService: TransactionPoolService,
     private readonly httpService: HttpService,
   ) {
   }
@@ -23,7 +24,7 @@ export class NetworkHelper {
     return this.currentNodeUrl;
   }
 
-  async joinNetwork(ip: string, blockchain: Block[]) {
+  async joinNetwork(ip: string) {
     if (this.nodes.includes(ip)) {
       return new BadRequestException('already have this node in this blockchain');
     }
@@ -33,33 +34,37 @@ export class NetworkHelper {
       // this need be before the connect with other node because will enter on loop
       this.nodes.push(ip);
       if (this.nodes.length === 1) {
-        await this.consensus(blockchain);
+        await this.consensus();
       }
-      await this.connectWithOtherNodes(ip, this.currentNodeUrl, this.blockchainService.getChain());
+      await this.connectWithOtherNodes(ip, this.currentNodeUrl);
       if (this.nodes.length === 1) {
         return `ip:${ip} was inserted`;
       }
-      await this.consensus(blockchain);
+      await this.consensus();
 
       for (const node of this.nodes) {
-        await this.connectWithOtherNodes(node, ip, null);
+        await this.connectWithOtherNodes(node, ip);
       }
       return `ip:${ip} was inserted`;
     }
   }
 
-  async consensus(blockchain: Block[]) {
-    const MyBlockchain = await this.getBlockchain();
-    if (blockchain.length > MyBlockchain.length) {
-      if (await this.blockchainService.isValidChain(blockchain)) {
-        this.blockchainService.setLargestChain(blockchain);
+  async consensus() {
+    const blockchains = await this.getBlockchains();
+    const myBlockchain = this.blockchainService.getChain();
+    for (const blockchain of blockchains) {
+      if (blockchain.blocks.length > myBlockchain.length) {
+        if (await this.blockchainService.isValidChain(blockchain.blocks)) {
+          this.blockchainService.setLargestChain(blockchain.blocks);
+          this.transactionPoolService.setTransactions(blockchain.transactions);
+        }
       }
     }
   }
 
-  async getBlockchain(): Promise<Array<AxiosResponse<Block[]>>> {
+  async getBlockchains(): Promise<Blockchain[]> {
     const requests = this.nodes.map(node => {
-      return this.httpService.get(node + '/network/blocks').toPromise();
+      return this.httpService.get(node + '/network/blockchain').toPromise();
     });
     return Promise.all(requests).then(result => {
       return result.map(blockchain => {
@@ -101,8 +106,8 @@ export class NetworkHelper {
     });
   }
 
-  async connectWithOtherNodes(node: string, ip: string, blockchain): Promise<any> {
+  async connectWithOtherNodes(node: string, ip: string): Promise<any> {
     Logger.log(`envio para: ${node} conectar com o :${ip}`);
-    return this.httpService.post(node + '/network/join', { ip, blockchain }).toPromise().then(res => res.data);
+    return this.httpService.post(node + '/network/join', { ip }).toPromise().then(res => res.data);
   }
 }

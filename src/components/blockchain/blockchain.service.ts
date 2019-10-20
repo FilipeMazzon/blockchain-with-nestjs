@@ -37,8 +37,8 @@ export class BlockchainService {
     return this.chain[this.chain.length - 1];
   }
 
-  setLargestChain(blockchain: Block[]): Block[] {
-    return this.chain = blockchain;
+  setLargestChain(blocks: Block[]) {
+    this.chain = blocks;
   }
 
   async isValidChain(chain): Promise<boolean> {

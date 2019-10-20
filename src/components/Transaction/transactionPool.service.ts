@@ -16,4 +16,8 @@ export class TransactionPoolService {
   getTransactions(): Transaction[] {
     return this.transactions;
   }
+
+  setTransactions(transactions: Transaction[]): Transaction[] {
+    return this.transactions = transactions;
+  }
 }

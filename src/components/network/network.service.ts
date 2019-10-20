@@ -56,6 +56,7 @@ export class NetworkService {
   async mineTransactions(): Promise<Blockchain> {
     const block = await this.miner.mine();
     await this.networkHelper.broadCastValidateBlock(block);
+    await this.networkHelper.consensus();
     await this.networkHelper.broadCastClearTransaction();
     Logger.log(`New block added: ${block.toString()}`, `networkService.`);
     return this.getBlockchain();

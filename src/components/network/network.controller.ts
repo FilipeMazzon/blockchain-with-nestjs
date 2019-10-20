@@ -51,8 +51,8 @@ export class NetworkController {
   }
 
   @Post('/join')
-  async joinNetwork(@Body('ip') ip: string, @Body('blockchain') blockchain: Block[]) {
-    return this.networkHelper.joinNetwork(ip, blockchain);
+  async joinNetwork(@Body('ip') ip: string) {
+    return this.networkHelper.joinNetwork(ip);
   }
 
   @Get('/list')
