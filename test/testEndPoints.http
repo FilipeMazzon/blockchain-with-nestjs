@@ -1,0 +1,53 @@
+# get blockchain node 0
+GET http://localhost:3000/network/blockchain
+
+###
+#get blockchain node 1
+GET http://localhost:3001/network/blockchain
+
+###
+#join networks
+POST http://localhost:3000/network/join
+Content-Type: application/json
+
+{
+	"ip":"http://172.18.0.1:3001"
+}
+###
+#join networks
+POST http://localhost:3000/network/join
+Content-Type: application/json
+
+{
+  "ip":"http://172.18.0.1:3002"
+}
+###
+#get nodes 0  connected
+GET http://localhost:3000/network/list
+
+###
+#get node 1 connected
+GET http://localhost:3001/network/list
+
+###
+#create transaction
+POST http://localhost:3000/network/transact
+Content-Type: application/json
+
+{
+	"identification" : "16185826747",
+	"doenca": {
+		"tipo": "virus",
+		"perigosidade": 3
+	}
+}
+###
+
+#get transactions
+GET http://localhost:3000/network/transactions
+###
+
+#this mine the blocks
+GET http://localhost:3000/network/mine-transactions
+
+###
